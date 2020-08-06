@@ -1,38 +1,80 @@
 # probot-practice
 
-Following from:
-* https://probot.github.io/docs/development/.
-* https://andrewlock.net/creating-my-first-github-app-with-probot-part-1-create-probot-app/
+Trying to make a serverless bot that can be pushed to Firebase.
 
-## Steps
+* https://probot.github.io/docs/serverless-deployment/#create-the-github-app
 
-Create probot app template:
+## GCP
+
+Links:
+* https://github.com/angular/github-robot/blob/master/functions/src/index.ts
+
 ```bash
-npx create-probot-app myfirstbot
-...
-? GitHub user or org name: plasmatech8
-? Repository name: myfirstbot
-? Which template would you like to use? basic-js
-...
+npm install @probot/serverless-gcf
 ```
 
-Install dependencies and start and the app ():
+Create a GCP Cloud Function.
+
+Allow all traffic.
+
+Write your function.
+
+![](docs/2020-08-07-00-38-19.png)
+
+Make sure that `pacakge.json` includes
+```json
+  "dependencies": {
+
+    "@probot/serverless-gcf": "^0.2.0",
+    "probot": "^9.5.3"
+  }
 ```
-cd myfirstbot
-npm install
-npm run dev
+
+Make sure `.env` includes: `APP_ID`, `PRIVATE_KEY`, and `WEBHOOK_SECRET`.
+
+Make sure that the entry point is set to 'probot', the `serverless` object.
+
+## AWS
+
+Links:
+* https://www.youtube.com/watch?v=7JZLipM8bT0
+
+
+We will install probot for lambda: `npm install @probot/serverless-lambda`
+
+We will create a `handler.js` file:
+```js
+// handler.js
+
+const { serverless } = require('@probot/serverless-gcf')
+const appFn = require('./')
+
+module.exports.probot = serverless(appFn)
 ```
 
-Go to http://localhost:3000/probot.
+We will create a `serverless.yml` file:
+```yml
+service: sls-response-bot
 
-Go to register GitHub App on GitHub.
+provider:
+    name: aws
+    runtime: nodejs8.10
+    region: us-east-1
 
-Make an issue.
-![](docs/2020-08-06-23-07-53.png)
+functions:
+    router:
+        handler: handler.probot
 
+    environment:
+        WEBHOOK_SECRET: ***
+        APP_ID: ***
+        LOG_FORMAT: json
 
-## Notes
+    events:
+      - http:
+        path: /probot
+        method: post
+```
 
-`.env` must never be pushed to Git.
+IDK what to do now.
 
-Smee is being used as a proxy from local machine to GitHub.
